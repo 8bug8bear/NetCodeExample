@@ -1,0 +1,16 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{1D0EDAFB-4169-29E1-0A37-6C8EC5928081}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "NetCodeExample",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	]
+}
