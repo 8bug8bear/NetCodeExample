@@ -15,21 +15,29 @@ class NETCODEEXAMPLE_API UNCEEquipmentComponent : public UActorComponent
 
 	
 protected:
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing=OnRep_EquipWeapon)
 	ANCEBaseWeapon* EquipWeapon;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Loadout ")
 	TSubclassOf<ANCEBaseWeapon> LoadoutWeapon;
 
-	TWeakObjectPtr<class ANCECharacter> CachedCharacterOwner;
+	UPROPERTY(Replicated)
+	ANCECharacter* CachedCharacterOwner;
 	
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 	void CreateLodout();
 
+	UFUNCTION()
+	void OnRep_EquipWeapon();
+	
 public:	
 	UNCEEquipmentComponent();
 
 	ANCEBaseWeapon* GetEquippedWeapon()const {return EquipWeapon;}
+
+	void DestroyAllWeapon();
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

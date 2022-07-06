@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ANCECharacter::ANCECharacter()
@@ -23,8 +24,10 @@ ANCECharacter::ANCECharacter()
 	Mesh1P->CastShadow = false;
 	
 	EquipmentComponent = CreateDefaultSubobject<UNCEEquipmentComponent>(TEXT("EquipmentComponent"));
+	EquipmentComponent->SetIsReplicated(true);
 
 	HealthComponent = CreateDefaultSubobject<UNCEHealthComponent>(TEXT("HealthComponent"));
+	HealthComponent->SetIsReplicated(true);
 }
 
 // Called when the game starts or when spawned
@@ -45,9 +48,18 @@ void ANCECharacter::StartSprinting()
 	{
 		return;
 	}
-
-	StopFireWeapon();
 	StopScopeWeapon();
+	Server_StartSprinting();
+}
+
+void ANCECharacter::Server_StartSprinting_Implementation()
+{
+	if(bIsSprinting)
+	{
+		return;
+	}
+	
+	StopFireWeapon();
 	bIsSprinting = true;
 	GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
 }
@@ -59,13 +71,21 @@ void ANCECharacter::StopSprinting()
 		return;
 	}
 
-	bIsSprinting = false;
+	Server_StopSprinting();
+}
 
+void ANCECharacter::Server_StopSprinting_Implementation()
+{
+	bIsSprinting = false;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void ANCECharacter::UpdateSprinting()
 {
+	if(GetWorld()->IsServer())
+	{
+		return;
+	}
 	if(RightAxis != 0.f)
 	{
 		StopSprinting();
@@ -99,7 +119,7 @@ void ANCECharacter::MoveRight(float Value)
 
 void ANCECharacter::FireWeapon()
 {
-	if(!bIsSprinting)
+	if(!bIsSprinting && EquipmentComponent->GetEquippedWeapon())
 	{
 		EquipmentComponent->GetEquippedWeapon()->Fire();
 	}
@@ -107,22 +127,31 @@ void ANCECharacter::FireWeapon()
 
 void ANCECharacter::StopFireWeapon()
 {
-	EquipmentComponent->GetEquippedWeapon()->StopFire();
+	if(EquipmentComponent->GetEquippedWeapon())
+	{
+		EquipmentComponent->GetEquippedWeapon()->StopFire();
+	}
 }
 
 void ANCECharacter::ScopeWeapon()
 {
-	if(EquipmentComponent->GetEquippedWeapon()->GetCanAim() && !bIsSprinting)
+	if(!bIsSprinting && EquipmentComponent->GetEquippedWeapon())
 	{
-		CameraComponent->FieldOfView = ScopeFieldAngle;
+		if(EquipmentComponent->GetEquippedWeapon()->GetCanAim())
+		{
+			CameraComponent->FieldOfView = ScopeFieldAngle;
+		}
 	}
 }
 
 void ANCECharacter::StopScopeWeapon()
 {
-	if(EquipmentComponent->GetEquippedWeapon()->GetCanAim())
+	if(EquipmentComponent->GetEquippedWeapon())
 	{
-		CameraComponent->FieldOfView = DefaultScopeFieldAngle;
+		if(EquipmentComponent->GetEquippedWeapon()->GetCanAim())
+		{
+			CameraComponent->FieldOfView = DefaultScopeFieldAngle;
+		}
 	}
 }
 
@@ -136,15 +165,12 @@ void ANCECharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-
-
-USkeletalMeshComponent* ANCECharacter::GetMesh() const
+USkeletalMeshComponent* ANCECharacter::GetVisibleMesh() const
 {
 	if(IsLocallyControlled())
 	{
 		return Mesh1P;
 	}
-	
 	return GetMesh();
 }
 
@@ -157,6 +183,17 @@ void ANCECharacter::Tick(float DeltaTime)
 	{
 		UpdateSprinting();
 	}
+}
+
+void ANCECharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ANCECharacter,bIsSprinting);
+}
+
+void ANCECharacter::OnDeath()
+{
+	EquipmentComponent->DestroyAllWeapon();
 }
 
 // Called to bind functionality to input

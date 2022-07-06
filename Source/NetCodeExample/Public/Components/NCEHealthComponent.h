@@ -19,12 +19,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Health", meta=(ClampMin=0.f,UIMin=0.f))
 	float MaxHealth = 100.f;
 
+	UPROPERTY(Replicated)
 	float Health;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Health", meta=(ClampMin=1.f,UIMin=1.f))
 	float HealDelay = 5.f;
 
-	TWeakObjectPtr<class ANCECharacter> CachedCharacterOwner;
+	UPROPERTY(Replicated)
+	class ANCECharacter* CachedCharacterOwner;
 
 	FTimerHandle HealTimerHandle;
 
@@ -38,4 +40,12 @@ protected:
 
 public:	
 	UNCEHealthComponent();
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealth()const{return Health;}
+
+	UFUNCTION(BlueprintCallable)
+	float GetMaxHealth()const{return MaxHealth;}
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

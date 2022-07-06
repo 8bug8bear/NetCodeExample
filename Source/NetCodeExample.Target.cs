@@ -9,6 +9,6 @@ public class NetCodeExampleTarget : TargetRules
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
-		ExtraModuleNames.AddRange( new string[] { "NetCodeExample" } );
+		ExtraModuleNames.Add("NetCodeExample");
 	}
 }

@@ -15,6 +15,10 @@ class NETCODEEXAMPLE_API ANCEGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 
+	virtual void RestartPlayer(AController* NewPlayer) override;
+	
 public:
 	ANCEGameMode();
+
+	void PlayerDied(ACharacter* Character);
 };

@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Components/NCEEquipmentComponent.h"
 #include "Components/NCEHealthComponent.h"
-#include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
 #include "NCECharacter.generated.h"
 
@@ -48,6 +47,7 @@ public:
 
 	float WalkSpeed;
 
+	UPROPERTY(Replicated)
 	bool bIsSprinting = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Scope")
@@ -60,8 +60,14 @@ protected:
 
 	void StartSprinting();
 
+	UFUNCTION(Server, Unreliable)
+	void Server_StartSprinting();
+
 	void StopSprinting();
 
+	UFUNCTION(Server, Unreliable)
+	void Server_StopSprinting();
+	
 	void UpdateSprinting();
 
 	/** Handles moving forward/backward */
@@ -89,9 +95,14 @@ public:
 
 	UCameraComponent* GetCameraComponent() const {return CameraComponent;}
 
-	USkeletalMeshComponent* GetMesh()const;
+	USkeletalMeshComponent* GetVisibleMesh()const;
 
+	UFUNCTION(BlueprintCallable)
 	UNCEHealthComponent* GetHealthComponent() const {return HealthComponent; }
 	
 	virtual void Tick(float DeltaTime) override;
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void OnDeath();
 };

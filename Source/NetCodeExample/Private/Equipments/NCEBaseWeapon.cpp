@@ -3,6 +3,9 @@
 
 #include "Equipments/NCEBaseWeapon.h"
 #include "Character/NCECharacter.h"
+#include "Net/UnrealNetwork.h"
+
+
 
 // Sets default values
 ANCEBaseWeapon::ANCEBaseWeapon()
@@ -14,23 +17,60 @@ ANCEBaseWeapon::ANCEBaseWeapon()
 
 	Barrel = CreateDefaultSubobject<UBarrelComponent>(TEXT("BarrelCpmponent"));
 	Barrel->SetupAttachment(WeaponMesh,MuzzelSktName);
+
+	bReplicates = true;
 }
 
-void ANCEBaseWeapon::Fire(){}
+void ANCEBaseWeapon::Fire()
+{
+	if(bCanUse)
+	{
+		Server_Fire();
+	}
+}
 
-void ANCEBaseWeapon::StopFire(){}
+void ANCEBaseWeapon::Server_Fire_Implementation()
+{
+	ServerFireEvent();
+}
+
+void ANCEBaseWeapon::ServerFireEvent(){}
+
+void ANCEBaseWeapon::StopFire()
+{
+	Server_StopFire();
+}
+
+void ANCEBaseWeapon::Server_StopFire_Implementation()
+{
+	ServerStopFireEvent();
+}
+
+void ANCEBaseWeapon::ServerStopFireEvent(){}
+
+void ANCEBaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ANCEBaseWeapon,bCanUse);
+	DOREPLIFETIME(ANCEBaseWeapon,CachedCharacterOwner);
+}
 
 // Called when the game starts or when spawned
 void ANCEBaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	AActor* OwningCharacter = GetOwner();
-	if(OwningCharacter)
+	
+	if(HasAuthority())
 	{
-		CachedCharacterOwner = StaticCast<ANCECharacter*>(OwningCharacter);
-	}
+		AActor* OwningCharacter = GetOwner();
+		if(OwningCharacter)
+		{
+			CachedCharacterOwner = StaticCast<ANCECharacter*>(OwningCharacter);
+		}
 
-	Barrel->SetDamageAmount(Damage);
+		Barrel->SetDamageAmount(Damage);
+	}
+	
 }
 
 void ANCEBaseWeapon::SetUseDelay()

@@ -20,6 +20,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="UsingWeapon", meta=(ClampMin=1.f,UIMin=1.f))
 	float DelayedReuse = 0.3f;
 
+	UPROPERTY(Replicated)
 	bool bCanUse = true;
 
 	FTimerHandle DelayedReuseTimerHandle;
@@ -38,7 +39,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="VisualEffects")
 	UAnimMontage* FireAnimMontage;
 
-	TWeakObjectPtr<class ANCECharacter> CachedCharacterOwner;
+	UPROPERTY(Replicated)
+	class ANCECharacter* CachedCharacterOwner;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly, Category="VisualEffects")
 	bool bCanAim = true;
@@ -53,7 +55,14 @@ protected:
 
 	UFUNCTION()
 	void SetCanUseToTrue(){bCanUse = true;}
-	
+
+private:
+	UFUNCTION(Server,Unreliable)
+	void Server_Fire();
+
+	UFUNCTION(Server,Unreliable)
+	void Server_StopFire();
+
 public:
 	// Sets default values for this actor's properties
 	ANCEBaseWeapon();
@@ -61,8 +70,14 @@ public:
 	FName GetAttachSktName() const {return AttachSktName;}
 
 	virtual void Fire();
+	
+	virtual void ServerFireEvent();
 
 	virtual void StopFire();
 
+	virtual void ServerStopFireEvent();
+
 	bool GetCanAim()const{return bCanAim;}
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };
