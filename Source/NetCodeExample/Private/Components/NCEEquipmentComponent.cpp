@@ -2,6 +2,8 @@
 
 
 #include "Components/NCEEquipmentComponent.h"
+
+#include "AudioMixerDevice.h"
 #include "Character/NCECharacter.h"
 #include "Net/UnrealNetwork.h"
 
@@ -21,6 +23,23 @@ void UNCEEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UNCEEquipmentComponent, EquipWeapon);
 	DOREPLIFETIME(UNCEEquipmentComponent,CachedCharacterOwner);
+}
+
+int32 UNCEEquipmentComponent::GetNumberAmmoEquipWeapon()
+{
+	if(EquipWeapon)
+	{
+		return EquipWeapon->GetAmmo();
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+void UNCEEquipmentComponent::AddAmmoEquipWeapon(int32 AdditionalAmmo)
+{
+	EquipWeapon->AddAmmo(AdditionalAmmo);
 }
 
 // Called when the game starts

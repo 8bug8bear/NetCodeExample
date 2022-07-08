@@ -39,7 +39,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="VisualEffects")
 	UAnimMontage* FireAnimMontage;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	class ANCECharacter* CachedCharacterOwner;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly, Category="VisualEffects")
@@ -47,6 +47,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Fire")
 	float Damage = 40.f;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Fire")
+	float RecoilVerticalValue = 1.f;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Fire")
+	float RecoilHorizontalValue = 0.3f;
+
+	UPROPERTY(Replicated, EditDefaultsOnly,BlueprintReadOnly,Category="Fire")
+	int32 Ammo = 30;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -55,6 +64,9 @@ protected:
 
 	UFUNCTION()
 	void SetCanUseToTrue(){bCanUse = true;}
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Fire")
+	void PlayRecoil();
 
 private:
 	UFUNCTION(Server,Unreliable)
@@ -80,4 +92,8 @@ public:
 	bool GetCanAim()const{return bCanAim;}
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	int32 GetAmmo()const{return Ammo;}
+
+	void AddAmmo(int32 AdditionalAmmo);
 };

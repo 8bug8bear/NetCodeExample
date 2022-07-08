@@ -40,4 +40,10 @@ public:
 	void DestroyAllWeapon();
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetNumberAmmoEquipWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void AddAmmoEquipWeapon(int32 AdditionalAmmo);
 };

@@ -36,6 +36,9 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayFireEffect();
+
+	UFUNCTION()
+	void OnClientShot();
 	
 public:
 	ANCEAutoWeapon();

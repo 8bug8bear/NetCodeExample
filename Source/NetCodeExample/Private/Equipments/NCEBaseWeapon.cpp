@@ -53,6 +53,15 @@ void ANCEBaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ANCEBaseWeapon,bCanUse);
 	DOREPLIFETIME(ANCEBaseWeapon,CachedCharacterOwner);
+	DOREPLIFETIME(ANCEBaseWeapon,Ammo);
+}
+
+void ANCEBaseWeapon::AddAmmo(int32 AdditionalAmmo)
+{
+	if(AdditionalAmmo>0)
+	{
+		Ammo+=AdditionalAmmo;
+	}
 }
 
 // Called when the game starts or when spawned

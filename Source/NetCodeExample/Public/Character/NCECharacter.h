@@ -99,6 +99,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UNCEHealthComponent* GetHealthComponent() const {return HealthComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	UNCEEquipmentComponent* GetEquipmentComponent() const {return EquipmentComponent; }
 	
 	virtual void Tick(float DeltaTime) override;
 

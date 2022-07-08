@@ -11,6 +11,17 @@ void ANCEAutoWeapon::BeginPlay()
 	AutoFireDelay = 60.f/FireRate;
 }
 
+void ANCEAutoWeapon::OnClientShot()
+{
+	if(Ammo<1)
+	{
+		GetWorldTimerManager().ClearTimer(PlayFireEffectTimerHandle);
+		return;
+	}
+	PlayFireEffect();
+	PlayRecoil();
+}
+
 ANCEAutoWeapon::ANCEAutoWeapon(){}
 
 void ANCEAutoWeapon::Fire()
@@ -18,7 +29,7 @@ void ANCEAutoWeapon::Fire()
 	Super::Fire();
 	if(bCanUse)
 	{
-		GetWorldTimerManager().SetTimer(PlayFireEffectTimerHandle, this, &ANCEAutoWeapon::PlayFireEffect,AutoFireDelay,true,0.f);
+		GetWorldTimerManager().SetTimer(PlayFireEffectTimerHandle, this, &ANCEAutoWeapon::OnClientShot,AutoFireDelay,true,0.f);
 	}
 }
 
@@ -33,6 +44,13 @@ void ANCEAutoWeapon::ServerFireEvent()
 
 void ANCEAutoWeapon::Shot()
 {
+	if(Ammo<1)
+	{
+		GetWorldTimerManager().ClearTimer(AutoFireTimerHandle);
+		return;
+	}
+
+	Ammo--;
 	AController* Controller = CachedCharacterOwner->GetController();
 	FVector ShootStatr;
 	FRotator ShootRotation;
