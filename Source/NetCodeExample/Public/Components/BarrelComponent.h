@@ -12,7 +12,6 @@ class NETCODEEXAMPLE_API UBarrelComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
-
 protected:
 	float FireRange = 999999.0f;
 	float DamageAmount = 40.0f;
@@ -21,7 +20,8 @@ public:
 	void SetDamageAmount(float NewDamage);
 
 	UFUNCTION()
-	void Shoot(FVector Start, FVector Direction, AController* Controller, AActor* IgnoreActor);
+	void Shoot(FVector Start, FVector Direction, AController* Controller, AActor* IgnoreActor) const;
 	
 	UBarrelComponent();
+	
 };

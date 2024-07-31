@@ -3,3 +3,7 @@
 
 #include "Core/NCEPlayerController.h"
 
+void ANCEPlayerController::Client_OnMatchIsOver_Implementation()
+{
+	BPI_OnMatchIsOver();
+}

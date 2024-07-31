@@ -16,7 +16,7 @@ ANCEBaseWeapon::ANCEBaseWeapon()
 	WeaponMesh->SetupAttachment(RootComponent);
 
 	Barrel = CreateDefaultSubobject<UBarrelComponent>(TEXT("BarrelCpmponent"));
-	Barrel->SetupAttachment(WeaponMesh,MuzzelSktName);
+	Barrel->SetupAttachment(WeaponMesh,MuzzleSktName);
 
 	bReplicates = true;
 }
@@ -26,6 +26,7 @@ void ANCEBaseWeapon::Fire()
 	if(bCanUse)
 	{
 		Server_Fire();
+		OnClientShot();
 	}
 }
 
@@ -34,7 +35,10 @@ void ANCEBaseWeapon::Server_Fire_Implementation()
 	ServerFireEvent();
 }
 
-void ANCEBaseWeapon::ServerFireEvent(){}
+void ANCEBaseWeapon::ServerFireEvent()
+{
+	Shot();
+}
 
 void ANCEBaseWeapon::StopFire()
 {
@@ -79,7 +83,6 @@ void ANCEBaseWeapon::BeginPlay()
 
 		Barrel->SetDamageAmount(Damage);
 	}
-	
 }
 
 void ANCEBaseWeapon::SetUseDelay()
@@ -88,6 +91,34 @@ void ANCEBaseWeapon::SetUseDelay()
 	GetWorldTimerManager().SetTimer(DelayedReuseTimerHandle, this,&ANCEBaseWeapon::SetCanUseToTrue, DelayedReuse);
 }
 
+void ANCEBaseWeapon::Shot()
+{
+	Ammo--;
+	AController* Controller = CachedCharacterOwner->GetController();
+	FVector ShootStart;
+	FRotator ShootRotation;
 
+	Controller->GetPlayerViewPoint(ShootStart,ShootRotation);
+	const FVector ShootDirection = ShootRotation.RotateVector(FVector::ForwardVector);
+	Barrel->Shoot(ShootStart,ShootDirection,Controller,CachedCharacterOwner);
+	Multicast_PlayFireEffect();
+}
 
+void ANCEBaseWeapon::PlayFireEffect() const
+{
+	WeaponMesh->PlayAnimation(FireAnimMontage,false);
+}
 
+void ANCEBaseWeapon::OnClientShot()
+{
+	PlayFireEffect();
+	PlayRecoil();
+}
+
+void ANCEBaseWeapon::Multicast_PlayFireEffect_Implementation()
+{
+	if(!CachedCharacterOwner->IsLocallyControlled())
+	{
+		PlayFireEffect();
+	}
+}

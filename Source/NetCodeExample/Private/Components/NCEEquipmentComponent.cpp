@@ -10,11 +10,33 @@
 // Sets default values for this component's properties
 UNCEEquipmentComponent::UNCEEquipmentComponent(){}
 
+void UNCEEquipmentComponent::Server_EquipFirstWeapon_Implementation()
+{
+	if(GetWorld()->IsNetMode(NM_DedicatedServer) && IsValid(FirstWeaponPtr))
+	{
+		EquipWeapon = FirstWeaponPtr;
+	}
+}
+
+void UNCEEquipmentComponent::Server_EquipSecondWeapon_Implementation()
+{
+	if(GetWorld()->IsNetMode(NM_DedicatedServer) && IsValid(SecondWeaponPtr))
+	{
+		EquipWeapon = SecondWeaponPtr;
+	}
+}
+
 void UNCEEquipmentComponent::DestroyAllWeapon()
 {
-	if(GetWorld()->IsServer())
+	if(GetWorld()->IsNetMode(NM_DedicatedServer))
 	{
-		EquipWeapon->Destroy();
+		EquipWeapon = nullptr;
+
+		FirstWeaponPtr->Destroy();
+		FirstWeaponPtr = nullptr;
+
+		SecondWeaponPtr->Destroy();
+		SecondWeaponPtr = nullptr;
 	}
 }
 
@@ -22,6 +44,8 @@ void UNCEEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UNCEEquipmentComponent, EquipWeapon);
+	DOREPLIFETIME(UNCEEquipmentComponent, FirstWeaponPtr)
+	DOREPLIFETIME(UNCEEquipmentComponent, SecondWeaponPtr)
 	DOREPLIFETIME(UNCEEquipmentComponent,CachedCharacterOwner);
 }
 
@@ -31,13 +55,11 @@ int32 UNCEEquipmentComponent::GetNumberAmmoEquipWeapon()
 	{
 		return EquipWeapon->GetAmmo();
 	}
-	else
-	{
-		return -1;
-	}
+	
+	return -1;
 }
 
-void UNCEEquipmentComponent::AddAmmoEquipWeapon(int32 AdditionalAmmo)
+void UNCEEquipmentComponent::AddAmmoToEquipWeapon(const int32 AdditionalAmmo)
 {
 	EquipWeapon->AddAmmo(AdditionalAmmo);
 }
@@ -47,42 +69,55 @@ void UNCEEquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if(GetWorld()->IsServer())
+	if(GetWorld()->IsNetMode(NM_DedicatedServer))
 	{
 		checkf(GetOwner()->IsA<ANCECharacter>(),TEXT("UNCEEquipmentComponent::BeginPlay() can de used only with NCECharacter"));
 		CachedCharacterOwner = StaticCast<ANCECharacter*>(GetOwner());
-		CreateLodout();
+		CreateLoadout();
 	}
 }
 
-void UNCEEquipmentComponent::CreateLodout()
+void UNCEEquipmentComponent::CreateLoadout()
 {
-	if(!IsValid(LoadoutWeapon))
+	if(!IsValid(FirstLoadoutWeaponClass) || !IsValid(SecondLoadoutWeaponClass) || !GetWorld()->IsNetMode(NM_DedicatedServer))
 	{
 		return;
 	}
-	if(GetWorld()->IsServer())
-	{
-		FActorSpawnParameters WeaponSpanwParameters = FActorSpawnParameters();;
-		WeaponSpanwParameters.Owner = GetOwner();
-		WeaponSpanwParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		EquipWeapon = GetWorld()->SpawnActor<ANCEBaseWeapon>(LoadoutWeapon,WeaponSpanwParameters);
-		EquipWeapon->AttachToActor(CachedCharacterOwner,FAttachmentTransformRules::KeepRelativeTransform);
-	}
+	
+	FActorSpawnParameters WeaponSpawnParameters = FActorSpawnParameters();;
+	WeaponSpawnParameters.Owner = GetOwner();
+	WeaponSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	
+	FirstWeaponPtr = GetWorld()->SpawnActor<ANCEBaseWeapon>(FirstLoadoutWeaponClass,WeaponSpawnParameters);
+	FirstWeaponPtr->AttachToActor(CachedCharacterOwner, FAttachmentTransformRules::KeepRelativeTransform);
+
+	SecondWeaponPtr = GetWorld()->SpawnActor<ANCEBaseWeapon>(SecondLoadoutWeaponClass,WeaponSpawnParameters);
+	SecondWeaponPtr->AttachToActor(CachedCharacterOwner, FAttachmentTransformRules::KeepRelativeTransform);
+	
+	EquipWeapon = FirstWeaponPtr;
 }
 
 void UNCEEquipmentComponent::OnRep_EquipWeapon()
 {
-	if(GetWorld()->IsServer())
+	if(GetWorld()->IsNetMode(NM_DedicatedServer))
 	{
 		return;
 	}
 
 	if(IsValid(EquipWeapon) && CachedCharacterOwner)
 	{
-		FAttachmentTransformRules transformRules(EAttachmentRule::KeepRelative, EAttachmentRule::KeepRelative, EAttachmentRule::KeepRelative, true);
-		EquipWeapon->AttachToComponent(CachedCharacterOwner->GetVisibleMesh(),transformRules,EquipWeapon->GetAttachSktName());
-
+		const FAttachmentTransformRules TransformRules(EAttachmentRule::KeepRelative, EAttachmentRule::KeepRelative, EAttachmentRule::KeepRelative, true);
+		EquipWeapon->AttachToComponent(CachedCharacterOwner->GetVisibleMesh(),TransformRules,EquipWeapon->GetAttachSktName());
+		
+		if(EquipWeapon != FirstWeaponPtr && IsValid(FirstWeaponPtr))
+		{
+			FirstWeaponPtr->AttachToComponent(CachedCharacterOwner->GetVisibleMesh(),TransformRules,FirstWeaponPtr->GetDetachSktName());
+		}
+		
+		if(EquipWeapon != SecondWeaponPtr && IsValid(SecondWeaponPtr))
+		{
+			SecondWeaponPtr->AttachToComponent(CachedCharacterOwner->GetVisibleMesh(),TransformRules,SecondWeaponPtr->GetDetachSktName());
+		}
 	}
 }
 

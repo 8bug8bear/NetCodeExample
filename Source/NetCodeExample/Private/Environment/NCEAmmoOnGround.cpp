@@ -9,7 +9,7 @@
 // Sets default values
 ANCEAmmoOnGround::ANCEAmmoOnGround()
 {
- 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	CollisionBox->SetupAttachment(RootComponent);
@@ -22,15 +22,15 @@ ANCEAmmoOnGround::ANCEAmmoOnGround()
 
 void ANCEAmmoOnGround::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if(!HasAuthority() || !bISActive)
+	if(!GetWorld()->IsNetMode(NM_DedicatedServer) || !bISActive)
 	{
 		return;
 	}
-	
-	ANCECharacter* Character = Cast<ANCECharacter>(OtherActor);
+
+	const ANCECharacter* Character = Cast<ANCECharacter>(OtherActor);
 	if(Character)
 	{
-		Character->GetEquipmentComponent()->AddAmmoEquipWeapon(StoredAmmo);
+		Character->GetEquipmentComponent()->AddAmmoToEquipWeapon(StoredAmmo);
 		bISActive = false;
 		GetWorldTimerManager().SetTimer(RecoveryAmmoTimerHandle,this,&ANCEAmmoOnGround::RecoveryAmmo, RecoveryTime);
 	}

@@ -10,7 +10,7 @@
 // Sets default values
 ANCECharacter::ANCECharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
@@ -42,63 +42,6 @@ void ANCECharacter::BeginPlay()
 	DefaultScopeFieldAngle = CameraComponent->FieldOfView;
 }
 
-void ANCECharacter::StartSprinting()
-{
-	if(bIsSprinting)
-	{
-		return;
-	}
-	StopScopeWeapon();
-	Server_StartSprinting();
-}
-
-void ANCECharacter::Server_StartSprinting_Implementation()
-{
-	if(bIsSprinting)
-	{
-		return;
-	}
-	
-	StopFireWeapon();
-	bIsSprinting = true;
-	GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
-}
-
-void ANCECharacter::StopSprinting()
-{
-	if(!bIsSprinting)
-	{
-		return;
-	}
-
-	Server_StopSprinting();
-}
-
-void ANCECharacter::Server_StopSprinting_Implementation()
-{
-	bIsSprinting = false;
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-}
-
-void ANCECharacter::UpdateSprinting()
-{
-	if(GetWorld()->IsServer())
-	{
-		return;
-	}
-	if(RightAxis != 0.f)
-	{
-		StopSprinting();
-		return;
-	}
-
-	if(ForwardAxis < 0.5f)
-	{
-		StopSprinting();
-		return;
-	}
-}
-
 void ANCECharacter::MoveForward(float Value)
 {
 	ForwardAxis = Value;
@@ -117,9 +60,25 @@ void ANCECharacter::MoveRight(float Value)
 	}
 }
 
+void ANCECharacter::SelectFirstWeapon()
+{
+	if(IsValid(EquipmentComponent))
+	{
+		EquipmentComponent->Server_EquipFirstWeapon();
+	}
+}
+
+void ANCECharacter::SelectSecondWeapon()
+{
+	if(IsValid(EquipmentComponent))
+	{
+		EquipmentComponent->Server_EquipSecondWeapon();
+	}
+}
+
 void ANCECharacter::FireWeapon()
 {
-	if(!bIsSprinting && EquipmentComponent->GetEquippedWeapon())
+	if(EquipmentComponent->GetEquippedWeapon())
 	{
 		EquipmentComponent->GetEquippedWeapon()->Fire();
 	}
@@ -135,7 +94,7 @@ void ANCECharacter::StopFireWeapon()
 
 void ANCECharacter::ScopeWeapon()
 {
-	if(!bIsSprinting && EquipmentComponent->GetEquippedWeapon())
+	if(EquipmentComponent->GetEquippedWeapon())
 	{
 		if(EquipmentComponent->GetEquippedWeapon()->GetCanAim())
 		{
@@ -178,20 +137,16 @@ USkeletalMeshComponent* ANCECharacter::GetVisibleMesh() const
 void ANCECharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if(bIsSprinting)
-	{
-		UpdateSprinting();
-	}
+	
 }
 
 void ANCECharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ANCECharacter,bIsSprinting);
+
 }
 
-void ANCECharacter::OnDeath()
+void ANCECharacter::OnDeath() const
 {
 	EquipmentComponent->DestroyAllWeapon();
 }
@@ -204,11 +159,11 @@ void ANCECharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ANCECharacter::StartSprinting);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ANCECharacter::StopSprinting);
-
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ANCECharacter::FireWeapon);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ANCECharacter::StopFireWeapon);
+
+	PlayerInputComponent->BindAction("SelectFirstWeapon", IE_Pressed, this, &ANCECharacter::SelectFirstWeapon);
+	PlayerInputComponent->BindAction("SelectSecondWeapon", IE_Pressed, this, &ANCECharacter::SelectSecondWeapon);
 
 	PlayerInputComponent->BindAction("Scope", IE_Pressed, this, &ANCECharacter::ScopeWeapon);
 	PlayerInputComponent->BindAction("Scope", IE_Released, this, &ANCECharacter::StopScopeWeapon);

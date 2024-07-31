@@ -13,13 +13,21 @@ class NETCODEEXAMPLE_API UNCEEquipmentComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-	
 protected:
 	UPROPERTY(ReplicatedUsing=OnRep_EquipWeapon)
 	ANCEBaseWeapon* EquipWeapon;
 
+	UPROPERTY(Replicated)
+	ANCEBaseWeapon* FirstWeaponPtr;
+
+	UPROPERTY(Replicated)
+	ANCEBaseWeapon* SecondWeaponPtr;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Loadout ")
-	TSubclassOf<ANCEBaseWeapon> LoadoutWeapon;
+	TSubclassOf<ANCEBaseWeapon> FirstLoadoutWeaponClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Loadout ")
+	TSubclassOf<ANCEBaseWeapon> SecondLoadoutWeaponClass;
 
 	UPROPERTY(Replicated)
 	ANCECharacter* CachedCharacterOwner;
@@ -27,23 +35,30 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void CreateLodout();
+	void CreateLoadout();
 
 	UFUNCTION()
 	void OnRep_EquipWeapon();
 	
-public:	
+public:
 	UNCEEquipmentComponent();
 
 	ANCEBaseWeapon* GetEquippedWeapon()const {return EquipWeapon;}
 
+	UFUNCTION(Server,Unreliable)
+	void Server_EquipFirstWeapon();
+
+	UFUNCTION(Server,Unreliable)
+	void Server_EquipSecondWeapon();
+
 	void DestroyAllWeapon();
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetNumberAmmoEquipWeapon();
 
 	UFUNCTION(BlueprintCallable)
-	void AddAmmoEquipWeapon(int32 AdditionalAmmo);
+	void AddAmmoToEquipWeapon(int32 AdditionalAmmo);
+	
 };

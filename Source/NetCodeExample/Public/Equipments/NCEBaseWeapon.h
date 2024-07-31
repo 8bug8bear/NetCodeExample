@@ -12,7 +12,6 @@ class NETCODEEXAMPLE_API ANCEBaseWeapon : public AActor
 {
 	GENERATED_BODY()
 
-
 protected:
 	UPROPERTY(VisibleDefaultsOnly, Category="WeaponMesh")
 	USkeletalMeshComponent* WeaponMesh;
@@ -30,7 +29,10 @@ protected:
 	FName AttachSktName;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="SocketName")
-	FName MuzzelSktName;
+	FName DetachSktName;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="SocketName")
+	FName MuzzleSktName;
 
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly, Category="WeaponComponents")
 	UBarrelComponent* Barrel;
@@ -68,6 +70,18 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Fire")
 	void PlayRecoil();
 
+	UFUNCTION()
+	virtual void Shot();
+
+	UFUNCTION()
+	void PlayFireEffect() const;
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayFireEffect();
+
+	UFUNCTION()
+	virtual void OnClientShot();
+
 private:
 	UFUNCTION(Server,Unreliable)
 	void Server_Fire();
@@ -81,6 +95,8 @@ public:
 
 	FName GetAttachSktName() const {return AttachSktName;}
 
+	FName GetDetachSktName() const {return DetachSktName;}
+	
 	virtual void Fire();
 	
 	virtual void ServerFireEvent();
@@ -91,9 +107,10 @@ public:
 
 	bool GetCanAim()const{return bCanAim;}
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	int32 GetAmmo()const{return Ammo;}
 
 	void AddAmmo(int32 AdditionalAmmo);
+	
 };

@@ -7,9 +7,6 @@
 // Sets default values for this component's properties
 UBarrelComponent::UBarrelComponent(){}
 
-
-
-
 void UBarrelComponent::SetDamageAmount(float NewDamage)
 {
 	if(NewDamage>1.f)
@@ -18,7 +15,7 @@ void UBarrelComponent::SetDamageAmount(float NewDamage)
 	}
 }
 
-void UBarrelComponent::Shoot(FVector Start, FVector Direction, AController* Controller, AActor* IgnoreActor)
+void UBarrelComponent::Shoot(FVector Start, FVector Direction, AController* Controller, AActor* IgnoreActor) const
 {
 	FVector ShootEnd = Direction*FireRange+Start;
 	FHitResult ShootResult;

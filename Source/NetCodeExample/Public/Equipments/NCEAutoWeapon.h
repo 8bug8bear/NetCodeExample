@@ -14,7 +14,6 @@ class NETCODEEXAMPLE_API ANCEAutoWeapon : public ANCEBaseWeapon
 {
 	GENERATED_BODY()
 
-	
 protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Fire")
 	float FireRate = 600.f;
@@ -30,22 +29,16 @@ protected:
 	virtual void ServerFireEvent() override;
 
 	virtual void ServerStopFireEvent() override;
+	
+	virtual void OnClientShot() override;
 
-	UFUNCTION()
-	void PlayFireEffect();
-
-	UFUNCTION(NetMulticast, Unreliable)
-	void Multicast_PlayFireEffect();
-
-	UFUNCTION()
-	void OnClientShot();
+	virtual void Shot() override;
 	
 public:
 	ANCEAutoWeapon();
 
 	virtual void Fire() override;
-	
-	void Shot();
 
 	virtual void StopFire() override;
+	
 };

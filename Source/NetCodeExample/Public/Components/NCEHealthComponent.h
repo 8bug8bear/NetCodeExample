@@ -12,9 +12,8 @@ class NETCODEEXAMPLE_API UNCEHealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-
 protected:
-	bool bISDeath = false;
+	bool bIsDeath = false;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Health", meta=(ClampMin=0.f,UIMin=0.f))
 	float MaxHealth = 100.f;
@@ -38,7 +37,7 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	UNCEHealthComponent();
 
 	UFUNCTION(BlueprintCallable)
@@ -47,5 +46,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetMaxHealth()const{return MaxHealth;}
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 };

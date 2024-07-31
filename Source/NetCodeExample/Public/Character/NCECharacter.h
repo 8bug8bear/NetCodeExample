@@ -16,7 +16,7 @@ class NETCODEEXAMPLE_API ANCECharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-
+protected:
 	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
 	USkeletalMeshComponent* Mesh1P;
 	
@@ -42,13 +42,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate = 45.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Sprint")
-	float MaxSprintSpeed = 1000.f;
-
 	float WalkSpeed;
-
-	UPROPERTY(Replicated)
-	bool bIsSprinting = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Scope")
 	float ScopeFieldAngle  = 45.f;
@@ -57,28 +51,20 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
-	void StartSprinting();
-
-	UFUNCTION(Server, Unreliable)
-	void Server_StartSprinting();
-
-	void StopSprinting();
-
-	UFUNCTION(Server, Unreliable)
-	void Server_StopSprinting();
 	
-	void UpdateSprinting();
-
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);
 
-	/** Handles stafing movement, left and right */
+	/** Handles staffing movement, left and right */
 	void MoveRight(float Val);
+
+	void SelectFirstWeapon();
+
+	void SelectSecondWeapon();
 	
 	void FireWeapon();
 
-	void StopFireWeapon();;
+	void StopFireWeapon();
 
 	void ScopeWeapon();
 
@@ -105,7 +91,8 @@ public:
 	
 	virtual void Tick(float DeltaTime) override;
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	void OnDeath();
+	void OnDeath() const;
+	
 };

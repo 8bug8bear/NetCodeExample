@@ -18,28 +18,7 @@ void ANCEAutoWeapon::OnClientShot()
 		GetWorldTimerManager().ClearTimer(PlayFireEffectTimerHandle);
 		return;
 	}
-	PlayFireEffect();
-	PlayRecoil();
-}
-
-ANCEAutoWeapon::ANCEAutoWeapon(){}
-
-void ANCEAutoWeapon::Fire()
-{
-	Super::Fire();
-	if(bCanUse)
-	{
-		GetWorldTimerManager().SetTimer(PlayFireEffectTimerHandle, this, &ANCEAutoWeapon::OnClientShot,AutoFireDelay,true,0.f);
-	}
-}
-
-
-void ANCEAutoWeapon::ServerFireEvent()
-{
-	Super::ServerFireEvent();
-	
-	SetUseDelay();
-	GetWorldTimerManager().SetTimer(AutoFireTimerHandle, this, &ANCEAutoWeapon::Shot,AutoFireDelay,true,0.f);
+	Super::OnClientShot();
 }
 
 void ANCEAutoWeapon::Shot()
@@ -49,17 +28,27 @@ void ANCEAutoWeapon::Shot()
 		GetWorldTimerManager().ClearTimer(AutoFireTimerHandle);
 		return;
 	}
+	
+	Super::Shot();
+}
 
-	Ammo--;
-	AController* Controller = CachedCharacterOwner->GetController();
-	FVector ShootStatr;
-	FRotator ShootRotation;
-	FVector ShootDirecrion;
+ANCEAutoWeapon::ANCEAutoWeapon(){}
 
-	Controller->GetPlayerViewPoint(ShootStatr,ShootRotation);
-	ShootDirecrion = ShootRotation.RotateVector(FVector::ForwardVector);
-	Barrel->Shoot(ShootStatr,ShootDirecrion,Controller,CachedCharacterOwner);
-	Multicast_PlayFireEffect();
+void ANCEAutoWeapon::Fire()
+{
+	Super::Fire();
+	if(bCanUse)
+	{
+		GetWorldTimerManager().SetTimer(PlayFireEffectTimerHandle, this, &ANCEAutoWeapon::OnClientShot,AutoFireDelay,true, AutoFireDelay);
+	}
+}
+
+void ANCEAutoWeapon::ServerFireEvent()
+{
+	Super::ServerFireEvent();
+	
+	SetUseDelay();
+	GetWorldTimerManager().SetTimer(AutoFireTimerHandle, this, &ANCEAutoWeapon::Shot,AutoFireDelay,true,AutoFireDelay);
 }
 
 void ANCEAutoWeapon::StopFire()
@@ -76,15 +65,4 @@ void ANCEAutoWeapon::ServerStopFireEvent()
 	GetWorldTimerManager().ClearTimer(AutoFireTimerHandle);
 }
 
-void ANCEAutoWeapon::PlayFireEffect()
-{
-	WeaponMesh->PlayAnimation(FireAnimMontage,false);
-}
 
-void ANCEAutoWeapon::Multicast_PlayFireEffect_Implementation()
-{
-	if(!CachedCharacterOwner->IsLocallyControlled())
-	{
-		PlayFireEffect();
-	}
-}

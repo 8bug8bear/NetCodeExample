@@ -25,7 +25,7 @@ void UNCEHealthComponent::Heal()
 
 void UNCEHealthComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-	if(bISDeath)
+	if(bIsDeath)
 	{
 		return;
 	}
@@ -36,13 +36,13 @@ void UNCEHealthComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, co
 	if(Health<=0.f)
 	{
 		Health=0.f;
-		bISDeath = true;
+		bIsDeath = true;
 		
 		ANCEGameMode* GameMode = Cast<ANCEGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 		if(GameMode)
 		{
 			CachedCharacterOwner->OnDeath();
-			GameMode->PlayerDied(CachedCharacterOwner);
+			GameMode->ReportDeathOfPlayer(InstigatedBy,DamagedActor, CachedCharacterOwner);
 		}
 		
 		return;
@@ -55,7 +55,7 @@ void UNCEHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(GetWorld()->IsServer())
+	if(GetWorld()->IsNetMode(NM_DedicatedServer))
 	{
 		checkf(GetOwner()->IsA<ANCECharacter>(), TEXT("UNCEHealthComponent::BeginPlay can de used only with ANCECharacter"));
 		CachedCharacterOwner = StaticCast<ANCECharacter*>(GetOwner());
